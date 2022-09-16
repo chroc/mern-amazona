@@ -5,6 +5,8 @@ import axios from 'axios';
 import { Col, Row } from 'react-bootstrap';
 import Product from '../components/Product';
 import { Helmet } from 'react-helmet-async';
+import LoadingBox from '../components/LoadingBox';
+import MessageBox from '../components/MessageBox';
 
 const reducer = (state, action) => {
     switch (action.type) {
@@ -35,9 +37,6 @@ const HomeScreen = () => {
             } catch (error) {
                 dispatch({ type: 'FETCH_FAIL', payload: error.message });
             }
-
-            // setProducts(result.data);
-            // console.log(result.data);
         };
         fetchData();
     }, []);
@@ -49,7 +48,7 @@ const HomeScreen = () => {
             </Helmet>
             <h1>Featured Products</h1>
             <div className="products">
-                {loading ? <div>Loading...</div> : error ? <div>{error}</div> :
+                {loading ? <LoadingBox /> : error ? <MessageBox variant="danger">{error}</MessageBox> :
                     (
                         <Row>
                             {products.map((product) => (
