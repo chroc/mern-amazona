@@ -1,5 +1,5 @@
 import { useContext, useEffect, useReducer, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Badge, Button, Card, Col, ListGroup, ListGroupItem, Row } from 'react-bootstrap';
 import Rating from '../components/Rating';
@@ -24,6 +24,7 @@ const reducer = (state, action) => {
 
 const ProductScreen = () => {
     const { slug } = useParams();
+    const navigate = useNavigate();
 
     const [{ loading, error, product }, dispatch] = useReducer(reducer, {
         product: [],
@@ -56,6 +57,7 @@ const ProductScreen = () => {
         }
         // Dispatch add to cart action on the Context
         ctxDispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity } });
+        navigate('/cart');
     };
 
     return (
