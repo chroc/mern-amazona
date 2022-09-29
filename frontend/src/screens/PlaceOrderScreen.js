@@ -1,13 +1,34 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 import { Button, Card, Col, ListGroup, ListGroupItem, Row } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate } from "react-router-dom";
 import { Store } from "../Store";
 import CheckoutSteps from '../components/CheckoutSteps';
+import { toast } from "react-toastify";
+import { getError } from "../utils";
+import axios from "axios";
+import LoadingBox from "../components/LoadingBox";
+
+// Define the reducer
+const reducer = (state, action) => {
+    switch (action.type) {
+        case 'CREATE_REQUEST':
+            return { ...state, loading: true };
+        case 'CREATE_SUCCESS':
+            return { ...state, loading: false };
+        case 'CREATE_FAIL':
+            return { ...state, loading: true };
+        default:
+            return state;
+    }
+};
 
 const PlaceOrderScreen = () => {
     const navigate = useNavigate();
-    const { state, dispatch } = useContext(Store);
+
+    const [{ loading }, dispatch] = useReducer(reducer, { loading: false });
+
+    const { state, dispatch: ctxDispatch } = useContext(Store);
     const { cart, userInfo } = state;
 
     // Round number: 122.2443 => 122.24
@@ -22,7 +43,32 @@ const PlaceOrderScreen = () => {
     cart.totalPrice = cart.itemsPrice + cart.shippingPrice + cart.taxPrice;
 
     // Place Order
-    const placeOrderHandler = async () => {};
+    const placeOrderHandler = async () => {
+        try {
+            dispatch({ type: 'CREATE_REQUEST' });
+            // Axios Request
+            const { data } = await axios.post('/api/orders', {
+                orderItems: cart.cartItems,
+                shippingAddress: cart.shippingAddress,
+                paymentMethod: cart.paymentMethod,
+                itemsPrice: cart.itemsPrice,
+                shippingPrice: cart.shippingPrice,
+                taxPrice: cart.taxPrice,
+                totalPrice: cart.totalPrice
+            }, {
+                headers: {
+                    authorization: `Bearer ${userInfo.token}`
+                }
+            });
+            ctxDispatch({ type: 'CART_CLEAR' });
+            dispatch({ type: 'CREATE_SUCCESS' });
+            localStorage.removeItem('cartItems');
+            navigate(`/order/${data.order._id}`);
+        } catch (error) {
+            dispatch({ type: 'CREATE_FAIL' });
+            toast.error(getError(error));
+        }
+    };
 
     useEffect(() => {
         if(!cart.paymentMethod) {
@@ -119,6 +165,7 @@ const PlaceOrderScreen = () => {
                                             disabled={cart.cartItems.length === 0}
                                         >Place Order</Button>
                                     </div>
+                                    {loading && <LoadingBox></LoadingBox>}
                                 </ListGroupItem>
                             </ListGroup>
                         </Card.Body>
