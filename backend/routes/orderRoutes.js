@@ -8,6 +8,12 @@ import { generateToken, isAuth, isAdmin } from '../utils.js';
 
 const orderRouter = express.Router();
 
+// GET List Orders
+orderRouter.get('/', isAuth, isAdmin, expressAsyncHandler(async (req, res) => {
+    const orders = await Order.find().populate('user', 'name');
+    res.send(orders);
+}));
+
 orderRouter.post('/', isAuth, expressAsyncHandler(async (req, res) => {
     // create new order
     const newOrder = new Order({
@@ -28,43 +34,43 @@ orderRouter.post('/', isAuth, expressAsyncHandler(async (req, res) => {
 
 // Send the summary to the admin user
 orderRouter.get('/summary', isAuth, isAdmin, expressAsyncHandler(async (req, res) => {
-        const orders = await Order.aggregate([
-            {
-                $group: {
-                    _id: null,
-                    numOrders: { $sum: 1 },
-                    totalSales: { $sum: '$totalPrice' },
-                },
+    const orders = await Order.aggregate([
+        {
+            $group: {
+                _id: null,
+                numOrders: { $sum: 1 },
+                totalSales: { $sum: '$totalPrice' },
             },
-        ]);
-        const users = await User.aggregate([
-            {
-                $group: {
-                    _id: null,
-                    numUsers: { $sum: 1 },
-                },
+        },
+    ]);
+    const users = await User.aggregate([
+        {
+            $group: {
+                _id: null,
+                numUsers: { $sum: 1 },
             },
-        ]);
-        const dailyOrders = await Order.aggregate([
-            {
-                $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                    orders: { $sum: 1 },
-                    sales: { $sum: '$totalPrice' },
-                },
+        },
+    ]);
+    const dailyOrders = await Order.aggregate([
+        {
+            $group: {
+                _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                orders: { $sum: 1 },
+                sales: { $sum: '$totalPrice' },
             },
-            { $sort: { _id: 1 } },
-        ]);
-        const productCategories = await Product.aggregate([
-            {
-                $group: {
-                    _id: '$category',
-                    count: { $sum: 1 },
-                },
+        },
+        { $sort: { _id: 1 } },
+    ]);
+    const productCategories = await Product.aggregate([
+        {
+            $group: {
+                _id: '$category',
+                count: { $sum: 1 },
             },
-        ]);
-        res.send({ users, orders, dailyOrders, productCategories });
-    })
+        },
+    ]);
+    res.send({ users, orders, dailyOrders, productCategories });
+})
 );
 
 orderRouter.get('/mine', isAuth, expressAsyncHandler(async (req, res) => {
