@@ -7,6 +7,7 @@ import LoadingBox from "../components/LoadingBox";
 import MessageBox from "../components/MessageBox";
 import { Button } from "react-bootstrap";
 import { getError } from "../utils";
+import { toast } from "react-toastify";
 
 // Define Reducer
 const reducer = (state, action) => {
