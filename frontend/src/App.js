@@ -31,10 +31,11 @@ import ProductEditScreen from './screens/ProductEditScreen';
 import OrderListScreen from './screens/OrderListScreen';
 import UserListScreen from './screens/UserListScreen';
 import UserEditScreen from './screens/UserEditScreen';
+import MapScreen from './screens/MapScreen';
 
 const App = () => {
   const { state, dispatch } = useContext(Store);
-  const { cart, userInfo } = state;
+  const { fullBox, cart, userInfo } = state;
 
   // Sign Out
   const signOutHandler = () => {
@@ -65,8 +66,12 @@ const App = () => {
       <div
         className={
           sidebarIsOpen
-            ? 'd-flex flex-column site-container active-cont'
-            : 'd-flex flex-column site-container'
+            ? fullBox
+              ? 'site-container active-cont d-flex flex-column full-box'
+              : 'site-container active-cont d-flex flex-column'
+            : fullBox
+              ? 'site-container d-flex flex-column full-box'
+              : 'site-container d-flex flex-column'
         }
       >
         <ToastContainer position="bottom-center" limit={1} />
@@ -159,6 +164,11 @@ const App = () => {
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <ProfileScreen />
+                </ProtectedRoute>
+              } />
+              <Route path="/map" element={
+                <ProtectedRoute>
+                  <MapScreen />
                 </ProtectedRoute>
               } />
               <Route path="/shipping" element={<ShippingAddressScreen />} />
