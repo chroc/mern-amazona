@@ -4,7 +4,8 @@ import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
 import bcrypt from 'bcryptjs';
 import expressAsyncHandler from 'express-async-handler';
-import { generateToken, isAuth, isAdmin } from '../utils.js';
+import { generateToken, isAuth, isAdmin, payOrderEmailTemplate } from '../utils.js';
+import sgMail from '@sendgrid/mail';
 
 const orderRouter = express.Router();
 
@@ -102,7 +103,7 @@ orderRouter.put('/:id/deliver', isAuth, expressAsyncHandler(async (req, res) => 
 
 // PUT Pay order
 orderRouter.put('/:id/pay', isAuth, expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', 'email name');
     if (order) {
         order.isPaid = true;
         order.paidAt = Date.now();
@@ -113,6 +114,25 @@ orderRouter.put('/:id/pay', isAuth, expressAsyncHandler(async (req, res) => {
             email_address: req.body.email_address
         };
         const updatedOrder = await order.save();
+
+        // Send email
+        // for the HTML, use utils.js/payOrderEmailTemplate
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+        const msg = {
+            to: order.user.email, // Change to your recipient
+            from: 'sergioroc710@gmail.com', // Change to your verified sender
+            subject: `New order ${order._id}`,
+            html: payOrderEmailTemplate(order),
+        };
+        sgMail
+            .send(msg)
+            .then(() => {
+                console.log(`Email sent to ${order.user.email}`)
+            })
+            .catch((error) => {
+                console.error(error)
+            });
+
         res.send({ message: 'Order Paid', order: updatedOrder });
     } else {
         res.status(404).send({ message: 'Order Not Found' });
