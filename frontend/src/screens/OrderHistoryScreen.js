@@ -81,7 +81,7 @@ const OrderHistoryScreen = () => {
                                         type="button"
                                         variant="light"
                                         onClick={() => {
-                                            navigate(`/orders/${order._id}`);
+                                            navigate(`/order/${order._id}`);
                                         }}
                                     >
                                         Details
