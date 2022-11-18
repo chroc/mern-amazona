@@ -1,4 +1,5 @@
 # MERN AMAZONA
 
-## Amazon clone
-Basic Amazon ecommerce functionality
+![Mern_Amazona](frontend/public/images/amazona.png)
+
+Basic Amazon ecommerce functionality using React, NodeJS and MongoDB
